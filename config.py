@@ -50,6 +50,23 @@ except ValueError:
     logger.warning("⚠️ Invalid OPENAI_TIMEOUT value; falling back to 300 seconds.")
     OPENAI_TIMEOUT = 300.0
 
+# ------------------- WEB SEARCH CONFIGURATION -------------------
+# Provider used by the model's web_search tool:
+#   "duckduckgo" – free, no API key (requires: pip install ddgs)
+#   "brave"      – free tier, needs BRAVE_API_KEY (https://brave.com/search/api/)
+#   "disabled"   – turns web search off entirely
+SEARCH_PROVIDER = os.getenv("SEARCH_PROVIDER", "duckduckgo").strip().lower()
+BRAVE_API_KEY = os.getenv("BRAVE_API_KEY", "")
+# Optional: point at your own SearXNG instance (e.g. "https://searx.mydomain").
+# When empty, a few public instances are tried as a fallback.
+SEARXNG_URL = os.getenv("SEARXNG_URL", "").strip()
+SEARCH_MAX_RESULTS = int(os.getenv("SEARCH_MAX_RESULTS", "3"))
+SEARCH_TIMEOUT = float(os.getenv("SEARCH_TIMEOUT", "10"))
+# Cap how many characters of search results are fed back to the model per query,
+# so a large result set can't blow up the context window. Kept small because NPU
+# backends have limited KV caches and error out on long prompts.
+SEARCH_RESULT_LIMIT_CHARS = int(os.getenv("SEARCH_RESULT_LIMIT_CHARS", "1200"))
+
 # ------------------- SYSTEM PROMPT -------------------
 SYSTEM_PROMPT = os.getenv(
     "SYSTEM_PROMPT",
@@ -62,9 +79,12 @@ SYSTEM_PROMPT = os.getenv(
 )
 
 # ------------------- MEMORY CONFIGURATION -------------------
-MODEL_MAX_CONTEXT = 8000  # total context window of the model
-RESPONSE_RESERVE = 1000  # tokens left free for the model's reply
-GROUP_TOKEN_BUDGET = 4000  # groups auto-prune once history exceeds this
+# Tunable via .env — important on small-context backends (e.g. NPU): set
+# MODEL_MAX_CONTEXT to match the model's real KV-cache size to avoid
+# "KV-cache update out of range" errors during long conversations.
+MODEL_MAX_CONTEXT = int(os.getenv("MODEL_MAX_CONTEXT", "8000"))  # total context window of the model
+RESPONSE_RESERVE = int(os.getenv("RESPONSE_RESERVE", "1000"))  # tokens left free for the model's reply
+GROUP_TOKEN_BUDGET = int(os.getenv("GROUP_TOKEN_BUDGET", "4000"))  # groups auto-prune once history exceeds this
 
 # ------------------- STATUS / DESCRIPTION -------------------
 BOT_DESCRIPTION_INTRO = os.getenv("BOT_DESCRIPTION_INTRO", "AI model running on Xiaomi 15")

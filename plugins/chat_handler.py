@@ -15,7 +15,7 @@ from telegram.ext import ContextTypes, MessageHandler, filters
 
 import config
 from core import state
-from core.llm import get_ai_response
+from core.llm import build_system_prompt, get_ai_response
 from core.memory import add_to_history, DM_TOKEN_BUDGET, remembered_text
 from core.messages import resolve_thread_id, find_bot_mention, strip_mention
 
@@ -166,7 +166,7 @@ async def respond(chat_id: int, thread_id: Optional[int], user_text: str, budget
     """Add the user's message to history, call the model, store and send the reply."""
     add_to_history(chat_id, thread_id, "user", user_text, budget)
     key = (chat_id, thread_id)
-    messages = [{"role": "system", "content": config.SYSTEM_PROMPT}]
+    messages = [{"role": "system", "content": build_system_prompt()}]
     remembered = remembered_text(chat_id, thread_id)
     if remembered:
         messages.append({"role": "system", "content": remembered})

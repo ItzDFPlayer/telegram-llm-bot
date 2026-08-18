@@ -12,11 +12,13 @@ from openai import OpenAI
 from config import OPENAI_BASE, OPENAI_API_KEY, OPENAI_TIMEOUT
 
 # Main completion client (generous but finite timeout).
-client = OpenAI(base_url=OPENAI_BASE, api_key=OPENAI_API_KEY, timeout=OPENAI_TIMEOUT)
+# max_retries=0: this backend's errors (NPU constraints, KV-cache overflow) are
+# deterministic, so the SDK's default retries only waste time.
+client = OpenAI(base_url=OPENAI_BASE, api_key=OPENAI_API_KEY, timeout=OPENAI_TIMEOUT, max_retries=0)
 
 # Lightweight client with a short timeout just for health checks, so a hung
 # backend can't block the periodic status job for the full default timeout.
-health_client = OpenAI(base_url=OPENAI_BASE, api_key=OPENAI_API_KEY, timeout=5.0)
+health_client = OpenAI(base_url=OPENAI_BASE, api_key=OPENAI_API_KEY, timeout=5.0, max_retries=0)
 
 # Active model name — initialized in bot.py and refreshed by the status feature.
 MODEL_NAME = "unknown"
